@@ -1,12 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: CSV Processing Pipeline using SAM (S3 Trigger, Lambda, SNS Email Notifications)
-
 Parameters:
   AdminEmail:
     Type: String
     Description: Email address to receive failure alerts
-
 Globals:
   Function:
     Timeout: 30
@@ -15,62 +13,63 @@ Globals:
     Handler: lambda_function.lambda_handler
     Environment:
       Variables:
-        DEST_BUCKET: !Ref DestinationBucket
-        TOPIC_ARN: !Ref SNSTopic
-
+        DEST_BUCKET:
+          Ref: DestinationBucket
+        TOPIC_ARN:
+          Ref: SNSTopic
 Resources:
-
-  # S3 bucket for uploading raw CSV files
   SourceBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'csv-source-${AWS::AccountId}-${AWS::Region}'
-
-  # S3 bucket for storing processed CSV files
+      BucketName:
+        Fn::Sub: csv-source-${AWS::AccountId}-${AWS::Region}
   DestinationBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'csv-destination-${AWS::AccountId}-${AWS::Region}'
-
-  # SNS topic for failure notifications
+      BucketName:
+        Fn::Sub: csv-destination-${AWS::AccountId}-${AWS::Region}
   SNSTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: CsvProcessingAlerts
-
-  # Email subscription to SNS topic
   SNSTopicSubscription:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: email
-      Endpoint: !Ref AdminEmail
-      TopicArn: !Ref SNSTopic
-
-  # Lambda function for processing CSV
+      Endpoint:
+        Ref: AdminEmail
+      TopicArn:
+        Ref: SNSTopic
   CsvProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: CsvProcessor
-      CodeUri: src/
+      CodeUri: CsvProcessorFunction
       Events:
         CsvUpload:
           Type: S3
           Properties:
-            Bucket: !Ref SourceBucket
+            Bucket:
+              Ref: SourceBucket
             Events: s3:ObjectCreated:*
       Policies:
-        - S3FullAccess
-        - Statement:
-            - Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !Ref SNSTopic
-        - CloudWatchLogsFullAccess
-
+      - S3FullAccess
+      - Statement:
+        - Effect: Allow
+          Action:
+          - sns:Publish
+          Resource:
+            Ref: SNSTopic
+      - CloudWatchLogsFullAccess
+    Metadata:
+      SamResourceId: CsvProcessorFunction
 Outputs:
   SourceBucketName:
-    Value: !Ref SourceBucket
+    Value:
+      Ref: SourceBucket
   DestinationBucketName:
-    Value: !Ref DestinationBucket
+    Value:
+      Ref: DestinationBucket
   SNSTopicARN:
-    Value: !Ref SNSTopic
+    Value:
+      Ref: SNSTopic

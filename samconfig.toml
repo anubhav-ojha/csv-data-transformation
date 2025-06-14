@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "csv-data-transform"
+resolve_s3 = true
+s3_prefix = "csv-data-transform"
+region = "eu-west-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "AdminEmail=\"anubhavojha9@gmail.com\""
+image_repositories = []
