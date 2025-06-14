@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CSV transformation pipeline with failure notification
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 256
+
+Resources:
+  InputBucket:
+    Type: AWS::S3::Bucket
+
+  OutputBucket:
+    Type: AWS::S3::Bucket
+
+  NotifyTopic:
+    Type: AWS::SNS::Topic
+
+  AdminSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref NotifyTopic
+      Protocol: email
+      Endpoint: your-admin-email@example.com
+
+  CSVProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      CodeUri: src/
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref InputBucket
+        - S3WritePolicy:
+            BucketName: !Ref OutputBucket
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotifyTopic.TopicName
+      Events:
+        S3PutEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref InputBucket
+            Events: s3:ObjectCreated:*
+
+Outputs:
+  InputBucketName:
+    Value: !Ref InputBucket
+  OutputBucketName:
+    Value: !Ref OutputBucket
+  FunctionName:
+    Value: !Ref CSVProcessorFunction
+
+Environment:
+  Variables:
+    OUTPUT_BUCKET: !Ref OutputBucket
+    SNS_TOPIC_ARN: !Ref NotifyTopic
