@@ -75,3 +75,14 @@ This project implements a **serverless pipeline** using AWS services to process 
    ```yaml
    Endpoint: your-admin-email@example.com   
 
+3. **Build**  
+   from terminal run below command
+
+   ```build
+   sam build 
+
+4. **Deploy**  
+   from terminal run below command
+
+   ```deploy
+   sam deploy --guided    
