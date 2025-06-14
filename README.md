@@ -67,5 +67,11 @@ This project implements a **serverless pipeline** using AWS services to process 
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/anubhav-ojha/csv-data-transformation.git
-   cd csv-data-transforamtion```
+   cd csv-data-transforamtion
+
+2. **Update Email in Template**  
+   Open the `template.yaml` file and replace the placeholder email with your actual admin email address:
+
+   ```yaml
+   Endpoint: your-admin-email@example.com   
 
